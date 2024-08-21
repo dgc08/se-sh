@@ -11,6 +11,8 @@ extern "C" {
         bool echo;
     } Terminal;
 
+    extern Terminal target_terminal;
+
     int target_system(char* command);
     void target_print(const char* str);
     void target_exit(int code); // shutdown

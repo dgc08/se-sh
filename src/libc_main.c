@@ -20,6 +20,8 @@ struct termios orig_termios;
 
 int ch;
 
+extern Terminal target_terminal;
+
 void target_print(const char* str) {
   printf(str);
 }
@@ -158,8 +160,10 @@ void add_to_history(char* input) {
 }
 
 int target_shell() {
+    target_terminal.echo = true;
     while (1) {
-        printf("$ ");
+        if (target_terminal.echo)
+            printf("$ ");
         fflush(stdout);
 
         // Wait for user input

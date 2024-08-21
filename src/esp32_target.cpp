@@ -5,6 +5,7 @@
 
 int exit_code;
 bool running;
+Terminal target_terminal;
 
 void target_print(const char* str) {
     Serial.print(str);
@@ -24,7 +25,9 @@ int target_system(char* command) {
 }
 
 int target_shell() {
-    static String inputLine;  // Static variable to retain value across loop iterations
+    target_terminal.echo = true;
+
+    static String inputLine;
     static bool new_iter;
     running = true;
 
@@ -36,13 +39,15 @@ int target_shell() {
         if (new_iter) {
             new_iter = false;
             inputLine = "";
-            Serial.print("$ ");
+            if (target_terminal.echo)
+                Serial.print("$ ");
         }
         if (Serial.available() > 0) {
             char receivedChar = Serial.read();
 
             if (receivedChar == '\n') {
-                Serial.println(); // flush
+                if (target_terminal.echo)
+                    Serial.println(); // flush
                 
                 char mutableInput[inputLine.length() + 1];
                 inputLine.toCharArray(mutableInput, inputLine.length() + 1);
@@ -60,7 +65,8 @@ int target_shell() {
             }
             else {
                 inputLine += receivedChar;
-                Serial.print(receivedChar);
+                if (target_terminal.echo)
+                    Serial.print(receivedChar);
 
             }
         }

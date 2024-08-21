@@ -25,6 +25,12 @@ Command_func associate_builtin(char* command) {
   else if (strcmp(command, "sesh") == 0) {
     return target_shell;
   }
+  else if (strcmp(command, "stty") == 0) {
+    return sh_stty;
+  }
+  else if (strcmp(command, "ord") == 0) {
+    return sh_ord;
+  }
 
   return NULL;
 }
