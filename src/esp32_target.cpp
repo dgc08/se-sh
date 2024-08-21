@@ -27,7 +27,7 @@ int target_system(char* command) {
 int target_shell() {
     target_terminal.echo = true;
 
-    static String inputLine;
+    static String inputBuffer;
     static bool new_iter;
     running = true;
 
@@ -38,7 +38,7 @@ int target_shell() {
     while (running) {
         if (new_iter) {
             new_iter = false;
-            inputLine = "";
+            inputBuffer = "";
             if (target_terminal.echo)
                 Serial.print("$ ");
         }
@@ -49,8 +49,8 @@ int target_shell() {
                 if (target_terminal.echo)
                     Serial.println(); // flush
                 
-                char mutableInput[inputLine.length() + 1];
-                inputLine.toCharArray(mutableInput, inputLine.length() + 1);
+                char mutableInput[inputBuffer.length() + 1];
+                inputBuffer.toCharArray(mutableInput, inputBuffer.length() + 1);
 
                 int code = prompt(mutableInput);
                 if (code < 0) {
@@ -59,12 +59,17 @@ int target_shell() {
                 new_iter = true;
             }
             else if (receivedChar == '\r') {} // ignore
+            else if (receivedChar == 0x8) {
+                if (inputBuffer.length())
+                    target_print("\b \b");
+                inputBuffer.remove(inputBuffer.length() - 1);
+            }
             else if (receivedChar == 0x4) {
                 target_print("\nexit");
                 return 0;
             }
             else {
-                inputLine += receivedChar;
+                inputBuffer += receivedChar;
                 if (target_terminal.echo)
                     Serial.print(receivedChar);
 
