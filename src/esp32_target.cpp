@@ -3,9 +3,16 @@
 #include "se-target.h"
 #include "se-sh.h"
 
+#define MAX_HISTORY 16
+
+String history[MAX_HISTORY];
+int history_cursor = 0;
+
 int exit_code;
 bool running;
 Terminal target_terminal;
+
+String input_buffer;
 
 void target_print(const char* str) {
     Serial.print(str);
@@ -28,12 +35,20 @@ void target_newline() {
     Serial.println();
 }
 
+void clear_prompt() {
+    while (input_buffer.length()) {
+        target_print("\b \b");
+        input_buffer.remove(input_buffer.length() - 1);
+    }
+}
+
 int target_shell() {
     target_terminal.echo = true;
 
-    static String inputBuffer;
     static bool new_iter;
     static char old_char = 0;
+    static int scroll_cursor = 0;
+    static bool scrolling = false;
     running = true;
 
     Serial.println("Welcome to se-sh!");
@@ -42,19 +57,27 @@ int target_shell() {
     while (running) {
         if (new_iter) {
             new_iter = false;
-            inputBuffer = "";
+            scrolling = false;
+
+            input_buffer = "";
             if (target_terminal.echo)
                 Serial.print("$ ");
         }
+        if (!scrolling)
+            scroll_cursor = history_cursor;
         if (Serial.available() > 0) {
             char rchar = Serial.read();
 
             if (rchar == '\r' || (rchar == '\n' && old_char != '\r')) {
                 if (target_terminal.echo)
                     target_newline(); // flush
+
+                history[history_cursor] = input_buffer;
+                history_cursor++;
+                history_cursor %= MAX_HISTORY;
                 
-                char mutableInput[inputBuffer.length() + 1];
-                inputBuffer.toCharArray(mutableInput, inputBuffer.length() + 1);
+                char mutableInput[input_buffer.length() + 1];
+                input_buffer.toCharArray(mutableInput, input_buffer.length() + 1);
 
                 int code = prompt(mutableInput);
                 if (code < 0) {
@@ -64,9 +87,9 @@ int target_shell() {
             }
             else if (rchar == '\n') {} // ignore
             else if (rchar == 0x8 || rchar == 0x7f) {
-                if (inputBuffer.length())
+                if (input_buffer.length())
                     target_print("\b \b");
-                inputBuffer.remove(inputBuffer.length() - 1);
+                input_buffer.remove(input_buffer.length() - 1);
             }
             else if (rchar == 0x4) {
                 target_newline();
@@ -75,10 +98,39 @@ int target_shell() {
                     Serial.print(rchar);
                 return 0;
             }
+            else if (rchar == 16) {
+                scroll_cursor--;
+                scroll_cursor %= MAX_HISTORY;
+                clear_prompt();
+
+                if (history[scroll_cursor] == nullptr)
+                    input_buffer = "";
+                else
+                    input_buffer = history[scroll_cursor];
+
+                target_print(input_buffer.c_str());
+
+                scrolling = true;
+            }
+            else if (rchar == 14) {
+                scroll_cursor++;
+                scroll_cursor %= MAX_HISTORY;
+                clear_prompt();
+
+                if (history[scroll_cursor] == nullptr)
+                    input_buffer = "";
+                else
+                    input_buffer = history[scroll_cursor];
+
+                target_print(input_buffer.c_str());
+
+                scrolling = true;
+            }
             else {
-                inputBuffer += rchar;
+                input_buffer += rchar;
                 if (target_terminal.echo)
                     Serial.print(rchar);
+                scrolling = false;
 
             }
             old_char = rchar;
