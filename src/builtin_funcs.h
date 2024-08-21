@@ -3,6 +3,8 @@
 
 #include "se-target.h"
 
+extern int se_exit_code;
+
 int sh_exit(char* args);
 int sh_echo(char* args);
 static inline int sh_pass(char* args) {return 0;}
