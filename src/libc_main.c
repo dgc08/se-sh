@@ -169,7 +169,11 @@ int target_shell() {
         if (strlen(inp) > 0) {
             add_to_history(inp);
             // Handle input (this could be any function call)
-            prompt(inp);
+            int code = prompt(inp);
+            if (code < 0) {
+                free(inp);
+                return (code+1)*-1;
+            }
         }
 
         free(inp);

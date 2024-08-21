@@ -23,7 +23,9 @@ OBJ_DIR_RELEASE = $(TMP_DIR)/release
 OBJ_DIR_DEBUG = $(TMP_DIR)/debug
 
 # Find all .c files in SRC_DIRS
-SRCS := $(shell find $(SRC_DIRS) -name '*.c') src/libc_main.c
+SHELL_SRCS = $(shell find $(SRC_DIRS) -name '*.c')
+SRCS := $(SHELL_SRCS) src/libc_main.c
+ESP_SRCS := $(SHELL_SRCS) $(wildcard src/esp32*.cpp)
 
 # Generate the object file names by replacing .c with .o and prefixing with OBJ_DIR/
 OBJS_RELEASE := $(patsubst %.c,$(OBJ_DIR_RELEASE)/%.o,$(SRCS))
@@ -32,7 +34,7 @@ OBJS_DEBUG := $(patsubst %.c,$(OBJ_DIR_DEBUG)/%.o,$(SRCS))
 # Default target
 all: release
 
-.PHONY: all debug release test clean
+.PHONY: all debug release test clean up con ucon
 
 debug: $(TARGET_DEBUG)
 release: $(TARGET)
@@ -55,6 +57,18 @@ $(OBJ_DIR_DEBUG)/%.o: %.c
 	@mkdir -p $(dir $@)  # Ensure the directory for the object file exists
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -c -o $@ $<
 
+$(TMP_DIR)/ESP32.lock: $(ESP_SRCS)
+	@mkdir -p $(dir $@)
+	platformio run --target upload
+	touch $@
+
+up: $(TMP_DIR)/ESP32.lock
+con:
+	pio device monitor
+ucon: $(TMP_DIR)/ESP32.lock
+	pio device monitor
+
 # Clean up the build
 clean:
 	rm -rf $(TMP_DIR) $(TARGET) $(TARGET_DEBUG)
+	pio run --target clean

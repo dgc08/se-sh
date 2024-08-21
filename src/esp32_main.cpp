@@ -11,6 +11,6 @@ void setup() {
 
 void loop() {
     int code = target_shell();
-    Serial.print("\n\nShell exited with ");
+    Serial.print("\nShell exited with ");
     Serial.println(code);
 }

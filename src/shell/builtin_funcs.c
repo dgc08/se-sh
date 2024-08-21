@@ -4,8 +4,7 @@
 
 int sh_exit(char* args) {
     int code = atoi(args); // I'll trust atoi is somewhere
-    target_exit(code);
-    return code;
+    return 0-(code+1);
 }
 
 int sh_echo(char* args) {

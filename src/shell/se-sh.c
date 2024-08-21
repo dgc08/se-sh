@@ -22,6 +22,9 @@ Command_func associate_builtin(char* command) {
   else if (strcmp(command, "sys") == 0) {
     return target_system;
   }
+  else if (strcmp(command, "sesh") == 0) {
+    return target_shell;
+  }
 
   return NULL;
 }
@@ -47,6 +50,11 @@ int prompt(char* inp) {
         target_print(command);
         target_print(": command not found\n");
         se_exit_code = 1;
+    }
+
+    if (se_exit_code < 0) {
+      se_exit_code = (se_exit_code+1)*-1;
+      return (se_exit_code+1)*-1;
     }
 
     return se_exit_code;

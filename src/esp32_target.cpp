@@ -47,13 +47,16 @@ int target_shell() {
                 char mutableInput[inputLine.length() + 1];
                 inputLine.toCharArray(mutableInput, inputLine.length() + 1);
 
-                prompt(mutableInput);
+                int code = prompt(mutableInput);
+                if (code < 0) {
+                    return (code+1)*-1;
+                }
                 new_iter = true;
             }
             else if (receivedChar == '\r') {} // ignore
             else if (receivedChar == 0x4) {
                 target_print("\nexit");
-                target_exit(0);
+                return 0;
             }
             else {
                 inputLine += receivedChar;
