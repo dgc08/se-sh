@@ -1,2 +1,4 @@
 tmp/
 se-sh-libc_debug
+.pio/
+.cache/

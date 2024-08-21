@@ -6,7 +6,7 @@
 int exit_code;
 bool running;
 
-void target_print(char* str) {
+void target_print(const char* str) {
     Serial.print(str);
 }
 
@@ -25,11 +25,12 @@ int target_system(char* command) {
 
 int target_shell() {
     static String inputLine;  // Static variable to retain value across loop iterations
-    static bool new_iter = true;
+    static bool new_iter;
     running = true;
 
     Serial.println();
     Serial.println("Welcome to se-sh!");
+    new_iter = true;
 
     while (running) {
         if (new_iter) {
@@ -49,7 +50,11 @@ int target_shell() {
                 prompt(mutableInput);
                 new_iter = true;
             }
-            else if (receivedChar == '\r') {} // ignore 
+            else if (receivedChar == '\r') {} // ignore
+            else if (receivedChar == 0x4) {
+                target_print("\nexit");
+                target_exit(0);
+            }
             else {
                 inputLine += receivedChar;
                 Serial.print(receivedChar);

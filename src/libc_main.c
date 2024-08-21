@@ -20,7 +20,7 @@ struct termios orig_termios;
 
 int ch;
 
-void target_print(char* str) {
+void target_print(const char* str) {
   printf(str);
 }
 

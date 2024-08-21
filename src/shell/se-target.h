@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 int target_system(char* command);
-void target_print(char* str);
+void target_print(const char* str);
 void target_exit(int code);
 void target_print_int(int num);
 
