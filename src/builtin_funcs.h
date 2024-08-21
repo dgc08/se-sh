@@ -1,14 +1,10 @@
 #ifndef BUILTIN_FUNCS_H_
 #define BUILTIN_FUNCS_H_
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "se-target.h"
 
-static inline int sh_exit(char* args) {
-    exit(atoi(args));
-}
-static inline int sh_echo(char* args) {
-    puts(args);
-}
+int sh_exit(char* args);
+int sh_echo(char* args);
+static inline int sh_pass(char* args) {return 0;}
 
 #endif // BUILTIN_FUNCS_H_
