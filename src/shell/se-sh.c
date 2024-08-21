@@ -31,6 +31,9 @@ Command_func associate_builtin(char* command) {
   else if (strcmp(command, "ord") == 0) {
     return sh_ord;
   }
+  else if (strcmp(command, "clear") == 0) {
+    return sh_clear;
+  }
 
   return NULL;
 }
@@ -54,7 +57,8 @@ int prompt(char* inp) {
     }
     else {
         target_print(command);
-        target_print(": command not found\n");
+        target_print(": command not found");
+        target_newline();
         se_exit_code = 1;
     }
 

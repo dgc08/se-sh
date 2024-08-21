@@ -22,6 +22,9 @@ int ch;
 
 extern Terminal target_terminal;
 
+void target_newline(const char* str) {
+    puts("");
+}
 void target_print(const char* str) {
   printf(str);
 }

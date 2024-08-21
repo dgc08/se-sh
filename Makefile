@@ -1,4 +1,9 @@
 TEST_FLAGS =
+con: # Serial monitor to use for ESP32
+#  pio device monitor
+	screen /dev/ttyUSB0 115200 # Use gnu screen because that clears the screen properly
+dev:
+	pio device monitor
 
 TARGET = se-sh-libc
 TARGET_DEBUG = $(TARGET)_debug
@@ -34,7 +39,7 @@ OBJS_DEBUG := $(patsubst %.c,$(OBJ_DIR_DEBUG)/%.o,$(SRCS))
 # Default target
 all: release
 
-.PHONY: all debug release test clean up con ucon
+.PHONY: all debug release test clean up con ucon dev udev
 
 debug: $(TARGET_DEBUG)
 release: $(TARGET)
@@ -63,10 +68,8 @@ $(TMP_DIR)/ESP32.lock: $(ESP_SRCS)
 	touch $@
 
 up: $(TMP_DIR)/ESP32.lock
-con:
-	pio device monitor
-ucon: $(TMP_DIR)/ESP32.lock
-	pio device monitor
+ucon: $(TMP_DIR)/ESP32.lock con
+udev: $(TMP_DIR)/ESP32.lock dev
 
 # Clean up the build
 clean:

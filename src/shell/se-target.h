@@ -17,6 +17,7 @@ extern "C" {
     void target_print(const char* str);
     void target_exit(int code); // shutdown
     void target_print_int(int num);
+    void target_newline();
     int target_shell();
 
 #ifdef __cplusplus

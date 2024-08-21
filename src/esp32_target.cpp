@@ -24,14 +24,18 @@ int target_system(char* command) {
     return 0;
 }
 
+void target_newline() {
+    Serial.println();
+}
+
 int target_shell() {
     target_terminal.echo = true;
 
     static String inputBuffer;
     static bool new_iter;
+    static char old_char = 0;
     running = true;
 
-    Serial.println();
     Serial.println("Welcome to se-sh!");
     new_iter = true;
 
@@ -43,11 +47,11 @@ int target_shell() {
                 Serial.print("$ ");
         }
         if (Serial.available() > 0) {
-            char receivedChar = Serial.read();
+            char rchar = Serial.read();
 
-            if (receivedChar == '\n') {
+            if (rchar == '\r' || (rchar == '\n' && old_char != '\r')) {
                 if (target_terminal.echo)
-                    Serial.println(); // flush
+                    target_newline(); // flush
                 
                 char mutableInput[inputBuffer.length() + 1];
                 inputBuffer.toCharArray(mutableInput, inputBuffer.length() + 1);
@@ -58,22 +62,26 @@ int target_shell() {
                 }
                 new_iter = true;
             }
-            else if (receivedChar == '\r') {} // ignore
-            else if (receivedChar == 0x8) {
+            else if (rchar == '\n') {} // ignore
+            else if (rchar == 0x8 || rchar == 0x7f) {
                 if (inputBuffer.length())
                     target_print("\b \b");
                 inputBuffer.remove(inputBuffer.length() - 1);
             }
-            else if (receivedChar == 0x4) {
-                target_print("\nexit");
+            else if (rchar == 0x4) {
+                target_newline();
+                target_print("exit");
+                if (target_terminal.echo)
+                    Serial.print(rchar);
                 return 0;
             }
             else {
-                inputBuffer += receivedChar;
+                inputBuffer += rchar;
                 if (target_terminal.echo)
-                    Serial.print(receivedChar);
+                    Serial.print(rchar);
 
             }
+            old_char = rchar;
         }
 
         // Small delay to avoid excessive CPU usage
