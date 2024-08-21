@@ -1,7 +1,15 @@
 #ifndef SE_SH_H_
 #define SE_SH_H_
 
-typedef int (*Command_func)(char*);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int prompt(char* inp);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif // SE_SH_H_

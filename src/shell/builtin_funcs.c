@@ -1,4 +1,5 @@
 #include "builtin_funcs.h"
+#include "se-target.h"
 #include <string.h>
 
 int sh_exit(char* args) {

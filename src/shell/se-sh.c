@@ -1,10 +1,10 @@
-#include "se-sh.h"
-
 #include <string.h>
 
 #include "se-target.h"
 #include "utils.h"
 #include "builtin_funcs.h"
+
+typedef int (*Command_func)(char*);
 
 char* command;
 int se_exit_code = 0;

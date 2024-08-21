@@ -8,8 +8,8 @@ DEBUG_LDFLAGS = -fsanitize=address
 DEBUG_FLAGS = -fsanitize=address -g
 RELEASE_FLAGS = -O2
 
-SRC_DIRS = src
-INCLUDE_DIRS = src
+SRC_DIRS = src/shell
+INCLUDE_DIRS = src/shell
 
 INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIRS))
 
@@ -23,7 +23,7 @@ OBJ_DIR_RELEASE = $(TMP_DIR)/release
 OBJ_DIR_DEBUG = $(TMP_DIR)/debug
 
 # Find all .c files in SRC_DIRS
-SRCS := $(shell find $(SRC_DIRS) -name '*.c')
+SRCS := $(shell find $(SRC_DIRS) -name '*.c') src/libc_main.c
 
 # Generate the object file names by replacing .c with .o and prefixing with OBJ_DIR/
 OBJS_RELEASE := $(patsubst %.c,$(OBJ_DIR_RELEASE)/%.o,$(SRCS))
