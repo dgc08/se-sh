@@ -37,7 +37,7 @@ void generic_arduino_reset() {
     esp_restart();
 }
 
-size_t target_write_file(char* filename, Container contents) {
+size_t target_write_file(const char* filename, Container contents) {
     File file = SPIFFS.open(filename, FILE_WRITE);
     if (!file) {
         return 0;
@@ -51,7 +51,7 @@ size_t target_write_file(char* filename, Container contents) {
 }
 
 
-Container target_read_file(char* filename) {
+Container target_read_file(const char* filename) {
     File file = SPIFFS.open(filename, FILE_READ);
     if (!file) {
         return {0, 0};
@@ -105,7 +105,7 @@ Container target_list_files() {
     return {ret, size};
 }
 
-bool target_remove_file(char* filename) {
+bool target_remove_file(const char* filename) {
     if (!SPIFFS.exists(filename))
         return false;
 

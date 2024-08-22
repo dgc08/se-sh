@@ -2,6 +2,7 @@
 #define SE_TARGET_H_
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,13 +24,13 @@ extern "C" {
     // Files
     typedef struct {
         void* content;
-        __SIZE_TYPE__ size;
+        size_t size;
     } Container;
 
-    __SIZE_TYPE__ target_write_file(char* filename, Container contents);
-    Container target_read_file(char* filename);
+    size_t target_write_file(const char* filename, Container contents);
+    Container target_read_file(const char* filename);
     Container target_list_files();
-    bool target_remove_file(char* filename);
+    bool target_remove_file(const char* filename);
 
 #ifdef __cplusplus
 }

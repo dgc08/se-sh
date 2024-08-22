@@ -2,9 +2,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <unistd.h>
 #include <string.h>
 #include <termios.h>
-#include <unistd.h>
 
 #include "se-sh.h"
 #include "se-target.h"
@@ -22,7 +23,7 @@ int ch;
 
 extern Terminal target_terminal;
 
-void target_newline(const char* str) {
+void target_newline() {
     puts("");
 }
 void target_print(const char* str) {
@@ -187,6 +188,74 @@ int target_shell() {
     }
 
     return 0;
+}
+
+size_t target_write_file(const char* filename, Container contents) {
+    FILE* file = fopen(filename, "wb");
+    if (!file)
+        return 0;
+
+    size_t w = fwrite(contents.content, 1, contents.size, file);
+    fclose(file);
+    return w;
+}
+
+Container target_read_file(const char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (!file)
+        return (Container){0, 0};
+
+    fseek(file, 0, SEEK_END);
+    size_t size = ftell(file);
+    rewind(file);
+
+    void* ret = malloc(size);
+    if (!ret) {
+        fclose(file);
+        return (Container){0, 0};
+    }
+
+    size_t read = fread(ret, 1, size, file);
+    fclose(file);
+
+    if (read != size) {
+        free(ret);
+        return (Container){0, 0};
+    }
+
+    return (Container){ret, size};
+}
+
+Container target_list_files() {
+    DIR* dir = opendir(".");
+    if (!dir)
+        return (Container){0, 0};
+
+    size_t size = 1;
+    struct dirent* entry;
+    while ((entry = readdir(dir)))
+        size += strlen(entry->d_name) + 1;
+
+    rewinddir(dir);
+
+    char* ret = (char*)malloc(size);
+    if (!ret) {
+        closedir(dir);
+        return (Container){0, 0};
+    }
+
+    ret[0] = '\0';
+    while ((entry = readdir(dir))) {
+        strcat(ret, entry->d_name);
+        strcat(ret, "\n");
+    }
+
+    closedir(dir);
+    return (Container){ret, size};
+}
+
+bool target_remove_file(const char* filename) {
+    return unlink(filename) == 0;
 }
 
 int main() {

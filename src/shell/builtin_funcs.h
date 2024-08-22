@@ -14,6 +14,11 @@ static inline int sh_clear() {
     return 0;
 }
 
+int sh_cat(char* args);
+int sh_rm(char* args);
+int sh_ls();
+int sh_write(char* args);
+
 static inline int sh_pass() {return 0;}
 
 #endif // BUILTIN_FUNCS_H_
