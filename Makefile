@@ -11,9 +11,9 @@ SRC_DIRS = src/shell
 INCLUDE_DIRS = src/shell
 
 # Compiler and flags
-CC = gcc
+CC = cc
 INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIRS))
-COMMON_CFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -Wno-discarded-qualifiers
+COMMON_CFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -Wno-discarded-qualifiers -Wno-ignored-qualifiers
 
 CFLAGS_DEBUG = -g -O0 -Wall
 CFLAGS_RELEASE = -O3 -Wall
