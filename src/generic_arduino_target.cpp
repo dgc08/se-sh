@@ -3,8 +3,8 @@
 #include "generic_arduino_target.h"
 #include "se-target.h"
 #include "se-sh.h"
-
 #include "s_utils.h"
+
 #include "sys/_stdint.h"
 #include <string.h>
 
@@ -40,8 +40,70 @@ int target_system(char* command) {
     if (strcmp(com, "pinMode") == 0) {
         return generic_arduino_pinMode(command);
     }
-    if (strcmp(com, "digitalWrite") == 0) {
+    else if (strcmp(com, "digitalWrite") == 0) {
         return generic_arduino_digitalWrite(command);
+    }
+    else if (strcmp(com, "reset") == 0) {
+        generic_arduino_reset();
+        target_print("Reset failed."); // You shall never reach this line
+        return 1;
+    }
+    else if (strcmp(com, "cat") == 0) {
+        // insert '/' before
+        // This might seem incredibly unsafe, but before the string is the '\0' of the "write" you entered
+        // The "write" ins't needed now anyway
+        command--;
+        *command = '/';
+
+        char* contents = (char*) (target_read_file(command).content);
+        if (!contents) {
+            target_print("cat: No such file or directory");
+            target_newline();
+            return 1;
+        }
+        target_print(contents);
+        target_newline();
+        free(contents);
+        return 0;
+    }
+    else if (strcmp(com, "rm") == 0) {
+        command--;
+        *command = '/';
+
+        if (target_remove_file(command))
+            return 0;
+        else {
+            target_print("rm: No such file or directory");
+            target_newline();
+            return 1;
+        }
+
+    }
+    else if (strcmp(com, "ls") == 0) {
+        Container list = target_list_files();
+        for (size_t i = 0; i < list.size; i++) {
+            if (((char*)list.content)[i] != '\n') {
+                char buf[2] = {((char*)list.content)[i], '\0'};
+                target_print(buf);
+            }
+            else
+                target_newline();
+        }
+
+        free(list.content);
+    }
+    else if (strcmp(com, "write") == 0) {
+        char* filename = get_arg(&command);
+
+        filename--;
+        *filename = '/';
+
+        size_t w = target_write_file(filename, {command, strlen(command)+1});
+        target_print("Written ");
+        target_print_int(w);
+        target_print(" bytes.");
+        target_newline();
+        return 0;
     }
 
     return 0;
@@ -161,7 +223,6 @@ int target_shell() {
     }
     return exit_code;
 }
-
 
 // //GPIO FUNCTIONS
 // #define INPUT             0x01

@@ -26,7 +26,7 @@ DEBUG_LDFLAGS = -fsanitize=address
 RELEASE_LDFLAGS = -s
 
 # The directory for object files
-ESP32_LOCK = .pio/build/project.checksum
+ESP32_LOCK = $(TMP_DIR)/ESP32.lock
 DEBUG_LOCK = $(TMP_DIR)/debug.lock
 RELEASE_LOCK = $(TMP_DIR)/release.lock
 TMP_DIR = tmp
