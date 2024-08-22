@@ -190,5 +190,6 @@ int target_shell() {
 }
 
 int main() {
+    puts("Welcome to se-sh!");
     return target_shell();
 }
