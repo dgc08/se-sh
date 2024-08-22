@@ -20,6 +20,7 @@ CC = gcc
 CFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -Wno-discarded-qualifiers
 
 # The directory for object files
+ESP32_LOCK = .pio/build/project.checksum
 TMP_DIR = tmp
 OBJ_DIR_RELEASE = $(TMP_DIR)/release
 OBJ_DIR_DEBUG = $(TMP_DIR)/debug
@@ -27,7 +28,7 @@ OBJ_DIR_DEBUG = $(TMP_DIR)/debug
 # Find all .c files in SRC_DIRS
 SHELL_SRCS = $(shell find $(SRC_DIRS) -name '*.c')
 SRCS := $(SHELL_SRCS) src/libc_main.c
-ESP_SRCS := $(SHELL_SRCS) $(wildcard src/esp32*.cpp)
+ESP_SRCS := $(SHELL_SRCS) $(wildcard src/esp32*.cpp) $(wildcard src/generic_arduino*.cpp)
 
 # Generate the object file names by replacing .c with .o and prefixing with OBJ_DIR/
 OBJS_RELEASE := $(patsubst %.c,$(OBJ_DIR_RELEASE)/%.o,$(SRCS))
@@ -59,14 +60,14 @@ $(OBJ_DIR_DEBUG)/%.o: %.c
 	@mkdir -p $(dir $@)  # Ensure the directory for the object file exists
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) -c -o $@ $<
 
-$(TMP_DIR)/ESP32.lock: $(ESP_SRCS)
+$(ESP32_LOCK): $(ESP_SRCS)
 	@mkdir -p $(dir $@)
 	platformio run --target upload
 	touch $@
 
-up: $(TMP_DIR)/ESP32.lock
-ucon: $(TMP_DIR)/ESP32.lock con
-udev: $(TMP_DIR)/ESP32.lock dev
+up: $(ESP32_LOCK)
+ucon: $(ESP32_LOCK) con
+udev: $(ESP32_LOCK) dev
 
 # Clean up the build
 clean:

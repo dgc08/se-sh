@@ -1,9 +1,17 @@
 #include "Arduino.h"
 
+#include "esp32-hal-gpio.h"
+#include "generic_arduino_target.h"
 #include "se-target.h"
 #include "se-sh.h"
 
+#include "s_utils.h"
+#include "sys/_stdint.h"
+#include <string.h>
+
 #define MAX_HISTORY 16
+
+uint8_t pinModes[NUM_OUPUT_PINS];
 
 String history[MAX_HISTORY];
 int history_cursor = 0;
@@ -28,6 +36,15 @@ void target_exit(int code) {
 }
 
 int target_system(char* command) {
+    char* com = get_arg(&command);
+
+    if (strcmp(com, "pinMode") == 0) {
+        return generic_arduino_pinMode(command);
+    }
+    if (strcmp(com, "digitalWrite") == 0) {
+        return generic_arduino_digitalWrite(command);
+    }
+
     return 0;
 }
 
@@ -40,6 +57,13 @@ void clear_prompt() {
         target_print("\b \b");
         input_buffer.remove(input_buffer.length() - 1);
     }
+}
+
+int target_prompt(String buf) {
+    char mutableInput[input_buffer.length() + 1];
+    input_buffer.toCharArray(mutableInput, input_buffer.length() + 1);
+
+    return prompt(mutableInput);
 }
 
 int target_shell() {
@@ -76,10 +100,7 @@ int target_shell() {
                 history_cursor++;
                 history_cursor %= MAX_HISTORY;
                 
-                char mutableInput[input_buffer.length() + 1];
-                input_buffer.toCharArray(mutableInput, input_buffer.length() + 1);
-
-                int code = prompt(mutableInput);
+                int code = target_prompt(input_buffer);
                 if (code < 0) {
                     return (code+1)*-1;
                 }
@@ -140,4 +161,69 @@ int target_shell() {
         delay(10);
     }
     return exit_code;
+}
+
+
+// //GPIO FUNCTIONS
+// #define INPUT             0x01
+// // Changed OUTPUT from 0x02 to behave the same as Arduino pinMode(pin,OUTPUT)
+// // where you can read the state of pin even when it is set as OUTPUT
+// #define OUTPUT            0x03
+// #define PULLUP            0x04
+// #define INPUT_PULLUP      0x05
+// #define PULLDOWN          0x08
+// #define INPUT_PULLDOWN    0x09
+// #define OPEN_DRAIN        0x10
+// #define OUTPUT_OPEN_DRAIN 0x13
+// #define ANALOG            0xC0
+//
+int generic_arduino_pinMode (char* args) {
+    uint8_t pin = atoi(get_arg(&args));
+    uint8_t mode = atoi(args);
+
+    if (!GPIO_IS_VALID_GPIO(pin)) {
+        target_print("Invalid pin selected");
+        target_newline();
+        return 1;
+    }
+
+    target_print("pinMode for pin ");
+    target_print_int(pin);
+    target_print(" set to ");
+    target_print_int(mode);
+
+    if (pin < NUM_OUPUT_PINS)
+        pinModes[pin] = mode;
+    pinMode(pin, mode);
+
+    target_newline();
+
+    return 0;
+}
+
+int generic_arduino_digitalWrite(char* args) {
+    uint8_t pin = atoi(get_arg(&args));
+    uint8_t val = atoi(args);
+
+    if (!GPIO_IS_VALID_GPIO(pin)) {
+        target_print("Invalid pin selected");
+        target_newline();
+        return 1;
+    }
+    if (pin < NUM_OUPUT_PINS && pinModes[pin] == 0) {
+        target_print("Setting pinMode to OUTPUT...");
+        target_newline();
+        pinMode(pin, OUTPUT);
+    }
+
+    target_print("digitalWrite for pin ");
+    target_print_int(pin);
+    target_print(" set to ");
+    target_print_int(val);
+
+    digitalWrite(pin, val);
+
+    target_newline();
+
+    return 0;
 }

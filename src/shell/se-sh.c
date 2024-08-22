@@ -1,8 +1,10 @@
 #include <string.h>
 
 #include "se-target.h"
-#include "utils.h"
 #include "builtin_funcs.h"
+
+#define S_UTILS_IMPL
+#include "s_utils.h"
 
 typedef int (*Command_func)(char*);
 
