@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include <string.h>
 #include <termios.h>
 
@@ -27,7 +28,7 @@ void target_newline() {
     puts("");
 }
 void target_print(const char* str) {
-  printf(str);
+  printf("%s", str);
 }
 
 void target_print_int(int num) {

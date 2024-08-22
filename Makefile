@@ -15,6 +15,8 @@ CC = cc
 INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIRS))
 COMMON_CFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -Wno-discarded-qualifiers -Wno-ignored-qualifiers
 
+LINTER =  clang-tidy
+
 CFLAGS_DEBUG = -g -O0 -Wall
 CFLAGS_RELEASE = -O3 -Wall
 
@@ -40,7 +42,7 @@ ESP_SRCS := $(SHELL_SRCS) $(wildcard src/esp32*.cpp) $(wildcard src/generic_ardu
 # Generate the object file names by replacing .c with .o and prefixing with OBJ_DIR/
 OBJS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRCS))
 
-.PHONY: all debug release test clean clean_obj up con ucon
+.PHONY: all debug release lint-libc lint-esp lint-shell test clean clean_obj up con ucon
 
 debug: CFLAGS = $(COMMON_CFLAGS) $(DEBUG_FLAGS)
 debug: LDFLAGS = $(COMMON_LDFLAGS) $(DEBUG_LDFLAGS)
@@ -49,6 +51,14 @@ debug: $(DEBUG_LOCK) $(TARGET)
 release: CFLAGS = $(COMMON_CFLAGS) $(RELEASE_FLAGS)
 release: LDFLAGS = $(COMMON_LDFLAGS) $(RELEASE_LDFLAGS)
 release: $(RELEASE_LOCK) $(TARGET)
+
+lint-esp: $(ESP_SRCS)
+	pio check
+lint-libc: $(SRCS)
+	$(LINTER) $^ -- $(COMMON_CFLAGS)
+lint-shell: $(SHELL_SRCS)
+	$(LINTER) $^ -- $(COMMON_CFLAGS)
+
 
 test: debug
 	echo && ./$(TARGET) $(TEST_FLAGS)
