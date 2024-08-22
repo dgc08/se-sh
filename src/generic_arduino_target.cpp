@@ -1,6 +1,5 @@
 #include "Arduino.h"
 
-#include "esp32-hal-gpio.h"
 #include "generic_arduino_target.h"
 #include "se-target.h"
 #include "se-sh.h"
@@ -176,26 +175,31 @@ int target_shell() {
 // #define OPEN_DRAIN        0x10
 // #define OUTPUT_OPEN_DRAIN 0x13
 // #define ANALOG            0xC0
-//
-int generic_arduino_pinMode (char* args) {
-    uint8_t pin = atoi(get_arg(&args));
-    uint8_t mode = atoi(args);
 
+int generic_arduino_pinMode_API(uint8_t pin, uint8_t mode) {
     if (!GPIO_IS_VALID_GPIO(pin)) {
         target_print("Invalid pin selected");
         target_newline();
         return 1;
     }
 
-    target_print("pinMode for pin ");
-    target_print_int(pin);
-    target_print(" set to ");
-    target_print_int(mode);
-
     if (pin < NUM_OUPUT_PINS)
         pinModes[pin] = mode;
     pinMode(pin, mode);
 
+    return 0;
+}
+
+int generic_arduino_pinMode (char* args) {
+    uint8_t pin = atoi(get_arg(&args));
+    uint8_t mode = atoi(args);
+
+    generic_arduino_pinMode_API(pin, mode);
+
+    target_print("pinMode for pin ");
+    target_print_int(pin);
+    target_print(" set to ");
+    target_print_int(mode);
     target_newline();
 
     return 0;
@@ -212,8 +216,10 @@ int generic_arduino_digitalWrite(char* args) {
     }
     if (pin < NUM_OUPUT_PINS && pinModes[pin] == 0) {
         target_print("Setting pinMode to OUTPUT...");
+        generic_arduino_pinMode_API(pin, OUTPUT);
+        target_print(" Set to ");
+        target_print_int(pinModes[pin]);
         target_newline();
-        pinMode(pin, OUTPUT);
     }
 
     target_print("digitalWrite for pin ");
