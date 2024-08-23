@@ -1,97 +1,89 @@
-# Default target
-all: release
-
-con: # Serial monitor generic arduino
-	pio device monitor
-
 TARGET = se-sh-libc
 TEST_FLAGS =
 
-SRC_DIRS = src/shell
 INCLUDE_DIRS = src/shell
+SRC_DIRS = src/shell
 
-# Compiler and flags
+SERIAL_MONITOR = pio device monitor
 CC = cc
-INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIRS))
-COMMON_CFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -Wno-ignored-qualifiers
-
 LINTER =  clang-tidy
-
-CFLAGS_DEBUG = -g -O0 -Wall
-CFLAGS_RELEASE = -O3 -Wall
+COMMON_CFLAGS = $(INCLUDE_FLAGS) -Wextra -Wno-ignored-qualifiers
+COMMON_LDFLAGS =
 
 DEBUG_FLAGS = -fsanitize=address -g
-RELEASE_FLAGS = -O3
+RELEASE_FLAGS = -O2
 
-COMMON_LDFLAGS =
 DEBUG_LDFLAGS = -fsanitize=address
 RELEASE_LDFLAGS = -s
+TMP_DIR = tmp
 
-# The directory for object files
+####
+
+INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIRS))
+
 ESP32_LOCK = $(TMP_DIR)/ESP32.lock
 ESP32_FS_LOCK = $(TMP_DIR)/ESP32_FS.lock
-DEBUG_LOCK = $(TMP_DIR)/debug.lock
-RELEASE_LOCK = $(TMP_DIR)/release.lock
-TMP_DIR = tmp
+DEBUG_LOCK = $(TMP_DIR)/debug_libc.lock
+RELEASE_LOCK = $(TMP_DIR)/release_libc.lock
 OBJ_DIR = $(TMP_DIR)/obj
 
-# Find all .c files in SRC_DIRS
-SHELL_SRCS = $(shell find $(SRC_DIRS) -name '*.c')
-SRCS := $(SHELL_SRCS) src/libc_main.c
-ESP_SRCS := $(SHELL_SRCS) $(wildcard src/esp32*.cpp) $(wildcard src/generic_arduino*.cpp)
-
-# Generate the object file names by replacing .c with .o and prefixing with OBJ_DIR/
+COMMON_SOURCES = $(shell find $(SRC_DIRS) -name '*.c')
+SRCS := $(COMMON_SOURCES) src/libc_main.c
+ESP_SRCS := $(COMMON_SOURCES) $(wildcard src/esp32*.cpp) $(wildcard src/generic_arduino*.cpp)
 OBJS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRCS))
 
-.PHONY: all debug release lint-libc lint-esp lint-shell test clean clean_obj up con ucon upfs
+####
 
-debug: CFLAGS = $(COMMON_CFLAGS) $(DEBUG_FLAGS)
-debug: LDFLAGS = $(COMMON_LDFLAGS) $(DEBUG_LDFLAGS)
-debug: $(DEBUG_LOCK) $(TARGET)
+default: release
+
+$(TMP_DIR)/%:
+	@mkdir -p $(dir $@)
+
+$(OBJ_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $^
+
+$(TMP_DIR)/%libc.lock: $(OBJ_DIR)
+	make clean_obj
+	touch $@
+
+$(ESP32_LOCK): $(ESP_SRCS)
+	platformio run --target upload
+	touch $@
+$(ESP32_FS_LOCK) : $(wildcard data/*)
+	platformio run --target uploadfs
+	touch $@
+
+.PHONY: default debug release lint-libc lint-common run clean clean_obj up con ucon upfs
 
 release: CFLAGS = $(COMMON_CFLAGS) $(RELEASE_FLAGS)
 release: LDFLAGS = $(COMMON_LDFLAGS) $(RELEASE_LDFLAGS)
 release: $(RELEASE_LOCK) $(TARGET)
 
-lint-esp: $(ESP_SRCS)
-	pio check
+debug: CFLAGS = $(COMMON_CFLAGS) $(DEBUG_FLAGS)
+debug: LDFLAGS = $(COMMON_LDFLAGS) $(DEBUG_LDFLAGS)
+debug: $(DEBUG_LOCK) $(TARGET)
+
 lint-libc: $(SRCS)
 	$(LINTER) $^ -- $(COMMON_CFLAGS)
-lint-shell: $(SHELL_SRCS)
+lint-common: $(COMMON_SOURCES)
 	$(LINTER) $^ -- $(COMMON_CFLAGS)
 
-
-test: debug
+run: debug
 	echo && ./$(TARGET) $(TEST_FLAGS)
 
-$(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^
+up: upfs $(ESP32_LOCK)
 
-$(TMP_DIR)/%.lock: $(OBJ_DIR)
-	make clean_obj
-	touch $@
-
-# Compile .c files into .o files for release
-$(OBJ_DIR)/%.o: %.c
-	@mkdir -p $(dir $@)  # Ensure the directory for the object file exists
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(ESP32_LOCK): $(ESP_SRCS)
-	@mkdir -p $(dir $@)
-	platformio run --target upload
-	touch $@
-$(ESP32_FS_LOCK) : $(wildcard data/*)
-	@mkdir -p $(dir $@)
-	platformio run --target uploadfs
-	touch $@
-
-up: $(ESP32_LOCK) upfs
+con:
+	$(SERIAL_MONITOR)
 ucon: up con
 upfs: $(ESP32_FS_LOCK)
 
-# Clean up the build
 clean: clean_obj
-	rm -rf $(TARGET)
+	rm -rf $(TARGET) $(TMP_DIR)
 	pio run --target clean
 clean_obj:
 	rm -rf $(OBJ_DIR)
