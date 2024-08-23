@@ -1,5 +1,6 @@
 #include "Arduino.h"
 
+#include "esp_system.h"
 #include "generic_arduino_target.h"
 #include "se-target.h"
 #include "se-sh.h"
@@ -15,8 +16,10 @@ uint8_t pinModes[NUM_OUPUT_PINS];
 String history[MAX_HISTORY];
 int history_cursor = 0;
 
-int exit_code;
-bool running;
+volatile int exit_code;
+volatile bool running;
+volatile bool executing = false;
+
 Terminal target_terminal;
 
 String input_buffer;
@@ -75,7 +78,11 @@ int arduino_prompt(String buf) {
     char mutableInput[input_buffer.length() + 1];
     input_buffer.toCharArray(mutableInput, input_buffer.length() + 1);
 
-    return prompt(mutableInput);
+    input_buffer = "";
+    executing = true;
+    int code = prompt(mutableInput);
+    executing = false;
+    return code;
 }
 
 int target_shell() {
@@ -91,11 +98,11 @@ int target_shell() {
     new_iter = true;
 
     while (running) {
+        generic_arduino_check_exit_key();
         if (new_iter) {
             new_iter = false;
             scrolling = false;
 
-            input_buffer = "";
             if (target_terminal.echo)
                 Serial.print("$ ");
         }
@@ -111,11 +118,12 @@ int target_shell() {
                 history[history_cursor] = input_buffer;
                 history_cursor++;
                 history_cursor %= MAX_HISTORY;
-                
+
                 int code = arduino_prompt(input_buffer);
                 if (code < 0) {
                     return (code+1)*-1;
                 }
+
                 new_iter = true;
             }
             else if (rchar == '\n') {} // ignore
@@ -123,13 +131,6 @@ int target_shell() {
                 if (input_buffer.length())
                     target_print("\b \b");
                 input_buffer.remove(input_buffer.length() - 1);
-            }
-            else if (rchar == 0x4) {
-                target_newline();
-                target_print("exit");
-                if (target_terminal.echo)
-                    Serial.print(rchar);
-                return 0;
             }
             else if (rchar == 16) {
                 scroll_cursor--;
@@ -167,12 +168,26 @@ int target_shell() {
 
             }
             old_char = rchar;
+            generic_arduino_check_exit_key();
         }
 
         // Small delay to avoid excessive CPU usage
         delay(10);
     }
     return exit_code;
+}
+
+void IRAM_ATTR generic_arduino_check_exit_key() {
+    if (Serial.available() && Serial.peek() == 0x4 && running) {
+        running = false;
+        if (executing) {
+            exit_code = 131;
+            generic_arduino_reset();
+        }
+        exit_code = 130;
+
+        Serial.read();
+    }
 }
 
 // //GPIO FUNCTIONS

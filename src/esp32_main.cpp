@@ -9,7 +9,6 @@
 int shell_exit_code = 0;
 
 void setup() {
-    // Initialize serial communication at 115200 baud
     Serial.begin(115200);
     while (!Serial);
     Serial.println();
