@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/ioctl.h>
+#include <poll.h>
 #include <stdint.h>
 #include <sys/wait.h>
 #include <string.h>
@@ -195,37 +198,36 @@ void read_input(char** input) {
 }
 
 void read_and_check_exit_condition() {
-    if (read(STDIN_FILENO, &ch, 1) == EOF || ch == 4 || ch == EOF) {
+    if (read(STDIN_FILENO, &ch, 1) == -1 || ch == 4 || ch == EOF) {
         puts("");
-        target_exit(0);
+        target_exit(130);
     }
 }
 
 void target_check_exit_condition() {
     char ch;
 
-    // Save the original file descriptor flags
-    int original_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    // Set up the pollfd structure
+    struct pollfd fds;
+    fds.fd = STDIN_FILENO;
+    fds.events = POLLIN; // Check for readable events
 
-    // Set the file descriptor to non-blocking mode
-    fcntl(STDIN_FILENO, F_SETFL, original_flags | O_NONBLOCK);
+    // Poll with a timeout of 0 milliseconds to check for input availability
+    int ret = poll(&fds, 1, 0);
 
-    // Try to read from stdin
-    ssize_t n = read(STDIN_FILENO, &ch, 1);
-
-    // If read returned -1 and errno is EAGAIN or EWOULDBLOCK, there's no input
-    if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-        // Do nothing and return
-        return;
-    }
-
-    // Restore the original file descriptor flags
-    fcntl(STDIN_FILENO, F_SETFL, original_flags);
-
-    // Check the exit conditions
-    if (n == 0 || ch == 4 || ch == EOF) {
-        puts("");
-        target_exit(0);
+    // Check if poll indicates data is available to read
+    if (ret > 0 && (fds.revents & POLLIN)) {
+        ssize_t n = read(STDIN_FILENO, &ch, 1);
+        if (n == 1) {
+            // Check the exit conditions
+            if (ch == 4 || ch == EOF) {
+                puts("");
+                target_exit(132);
+            }
+        }
+    } else if (ret < 0) {
+        // Handle poll error
+        perror("poll");
     }
 }
 
