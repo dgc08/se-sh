@@ -15,6 +15,7 @@ extern "C" {
 
     int target_system(char* command); // This is for exposing platform-specific functions
     int target_shell();               // The REPL itself
+    void target_check_exit_condition();
 
     void target_write_output(const char* data, size_t nbytes); // write(STDOUT_FILENO, ...
     void target_print(const char* str);

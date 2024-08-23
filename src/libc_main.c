@@ -22,7 +22,8 @@ int history_count = 0;
 int current_history_index = -1;
 struct termios orig_termios;
 
-int ch;
+
+char ch;
 
 extern Terminal target_terminal;
 
@@ -95,7 +96,7 @@ int handle_arrow_keys() {
 
 void clear_prompt(int len) {
     while (len > 0) {
-        printf("\b \b");
+        printf("\b\b");
         len--;
     }
 }
@@ -109,18 +110,11 @@ void read_input(char** input) {
 
     set_raw_mode();
     while (1) {
-        char ch;
-        if (read(STDIN_FILENO, &ch, 1) == -1) {
-            break;
-        }
+        target_check_exit_condition();
 
         if (ch == '\n') {
             (*input)[length] = '\0';
             printf("\n");
-            break;
-        } else if (ch == 4) { // Handle EOF (Ctrl+D sends ASCII 4)
-            puts("");
-            target_exit(0);
             break;
         } if (ch == 27) { // Escape sequence (potentially an arrow key)
             int arrow_key = handle_arrow_keys();
@@ -197,6 +191,14 @@ void read_input(char** input) {
 
     reset_terminal_mode();
 }
+
+void target_check_exit_condition() {
+    if (read(STDIN_FILENO, &ch, 1) == EOF || ch == 4 || ch == EOF) {
+        puts("");
+        target_exit(0);
+    }
+}
+
 // Function to add input to history
 void add_to_history(char* input) {
     if (history_count < MAX_HISTORY) {

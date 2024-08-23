@@ -102,7 +102,7 @@ int target_shell() {
     new_iter = true;
 
     while (running) {
-        generic_arduino_check_exit_key();
+        target_check_exit_condition();
         if (new_iter) {
             new_iter = false;
             scrolling = false;
@@ -172,7 +172,7 @@ int target_shell() {
 
             }
             old_char = rchar;
-            generic_arduino_check_exit_key();
+            target_check_exit_condition();
         }
 
         // Small delay to avoid excessive CPU usage
@@ -181,7 +181,7 @@ int target_shell() {
     return exit_code;
 }
 
-void IRAM_ATTR generic_arduino_check_exit_key() {
+void target_check_exit_condition() {
     if (Serial.available() && Serial.peek() == 0x4 && running) {
         running = false;
         if (executing) {
