@@ -14,7 +14,7 @@
 #include "se-target.h"
 
 #define MAX_HISTORY 100
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 16
 
 // Global variables
 char* history[MAX_HISTORY];
@@ -62,12 +62,10 @@ int target_system(char* command) {
   }
 };
 
-// Function to reset terminal to original state
 void reset_terminal_mode() {
     tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
 }
 
-// Function to set terminal to raw mode
 void set_raw_mode() {
     struct termios raw;
 
@@ -82,7 +80,6 @@ void set_raw_mode() {
     tcsetattr(STDIN_FILENO, TCSANOW, &raw);
 }
 
-// Function to handle arrow keys
 int handle_arrow_keys() {
     char seq[3];
     if (read(STDIN_FILENO, &seq[0], 1) != 1) return 0;
@@ -96,6 +93,13 @@ int handle_arrow_keys() {
     return 0;
 }
 
+void clear_prompt(int len) {
+    while (len > 0) {
+        printf("\b \b");
+        len--;
+    }
+}
+
 // Function to read user input
 void read_input(char** input) {
     size_t buffer_size = BUFFER_SIZE;
@@ -104,7 +108,6 @@ void read_input(char** input) {
     size_t length = 0;
 
     set_raw_mode();
-
     while (1) {
         char ch;
         if (read(STDIN_FILENO, &ch, 1) == -1) {
@@ -119,31 +122,64 @@ void read_input(char** input) {
             puts("");
             target_exit(0);
             break;
-        } else if (ch == 27) { // Escape sequence (potentially an arrow key)
+        } if (ch == 27) { // Escape sequence (potentially an arrow key)
             int arrow_key = handle_arrow_keys();
             if (arrow_key == 1 && history_count > 0) { // Up arrow
+                clear_prompt(length);
                 if (current_history_index < history_count - 1) {
                     current_history_index++;
                 }
+                size_t new_length = strlen(history[history_count - current_history_index - 1]);
+
+                // Check if buffer reallocation is needed
+                if (new_length >= buffer_size) {
+                    buffer_size = new_length + 1; // +1 for null terminator
+                    *input = realloc(*input, buffer_size);
+                    if (*input == NULL) {
+                        perror("realloc");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+
                 strcpy(*input, history[history_count - current_history_index - 1]);
-                length = strlen(*input);
-                printf("\r$ %s", *input);
+                length = new_length;
+                printf("%s", *input);
                 fflush(stdout);
             } else if (arrow_key == 2 && history_count > 0) { // Down arrow
+                clear_prompt(length);
                 if (current_history_index > 0) {
                     current_history_index--;
+                    size_t new_length = strlen(history[history_count - current_history_index - 1]);
+
+                    // Check if buffer reallocation is needed
+                    if (new_length >= buffer_size) {
+                        buffer_size = new_length + 1; // +1 for null terminator
+                        *input = realloc(*input, buffer_size);
+                        if (*input == NULL) {
+                            perror("realloc");
+                            exit(EXIT_FAILURE);
+                        }
+                    }
+
                     strcpy(*input, history[history_count - current_history_index - 1]);
+                    length = new_length;
                 } else {
                     current_history_index = -1;
                     length = 0;
                     (*input)[0] = '\0';
                 }
-                printf("\r$ %s", *input);
+                printf("%s", *input);
+                fflush(stdout);
+            }
+        } else if (ch == 8 || ch == 127) { // Backspace
+            if (length > 0) {
+                (*input)[--length] = '\0';
+                printf("\b \b");
                 fflush(stdout);
             }
         } else {
             if (length + 1 >= buffer_size) {
-                buffer_size = (size_t)(buffer_size * 1.5);
+                buffer_size = (size_t)(buffer_size * 2);
                 char *temp = realloc(*input, buffer_size * sizeof(char));
                 if (!temp) {
                     fprintf(stderr, "Reallocation failed\n");
