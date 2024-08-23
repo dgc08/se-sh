@@ -1,25 +1,31 @@
 #ifndef SE_TARGET_H_
 #define SE_TARGET_H_
 
-#include <stdbool.h>
-#include <stdlib.h>
+#include "s_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+    // General IO
     typedef struct {
         bool echo;
     } Terminal;
 
     extern Terminal target_terminal;
 
-    int target_system(char* command);
+    int target_system(char* command); // This is for exposing platform-specific functions
+    int target_shell();               // The REPL itself
+    
     void target_print(const char* str);
     void target_exit(int code); // shutdown
     void target_print_int(int num);
     void target_newline();
-    int target_shell();
+    void target_sleep(uint32_t millis);
+
+    // stdlib functions which need to be implemented one way or another
+    void *malloc(size_t);
+    void *realloc(void *, size_t);
+    void free(void *);
 
     // Files
     typedef struct {

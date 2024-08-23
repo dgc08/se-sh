@@ -9,6 +9,7 @@ int sh_exit(char* args);
 int sh_echo(char* args);
 int sh_stty(char* args);
 int sh_ord(char* args);
+int sh_sleep(char* args);
 static inline int sh_clear() {
     target_print("\033[2J\033[H");
     return 0;

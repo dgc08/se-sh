@@ -1,9 +1,11 @@
+#include "sys/unistd.h"
 #define TARGET_LIBC
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <unistd.h>
+#include "stdint.h"
 #include <sys/wait.h>
 #include <string.h>
 #include <termios.h>
@@ -33,6 +35,10 @@ void target_print(const char* str) {
 
 void target_print_int(int num) {
   printf("%d", num);
+}
+
+void target_sleep(uint32_t millis) {
+    usleep(millis*1000);
 }
 
 void target_exit(int code) {

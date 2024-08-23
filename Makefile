@@ -13,7 +13,7 @@ INCLUDE_DIRS = src/shell
 # Compiler and flags
 CC = cc
 INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIRS))
-COMMON_CFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -Wno-discarded-qualifiers -Wno-ignored-qualifiers
+COMMON_CFLAGS = $(INCLUDE_FLAGS) -Wall -Wextra -Wno-ignored-qualifiers
 
 LINTER =  clang-tidy
 

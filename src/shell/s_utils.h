@@ -15,7 +15,6 @@ char* get_arg(char** string);
 #endif
 
 #ifdef S_UTILS_IMPL
-#include <stdlib.h>
 
 char* get_arg(char** str) {
     char* ret = *str;

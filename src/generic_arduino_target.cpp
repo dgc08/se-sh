@@ -67,7 +67,11 @@ void clear_prompt() {
     }
 }
 
-int target_prompt(String buf) {
+void target_sleep(uint32_t mills) {
+    delay(mills);
+}
+
+int arduino_prompt(String buf) {
     char mutableInput[input_buffer.length() + 1];
     input_buffer.toCharArray(mutableInput, input_buffer.length() + 1);
 
@@ -108,7 +112,7 @@ int target_shell() {
                 history_cursor++;
                 history_cursor %= MAX_HISTORY;
                 
-                int code = target_prompt(input_buffer);
+                int code = arduino_prompt(input_buffer);
                 if (code < 0) {
                     return (code+1)*-1;
                 }

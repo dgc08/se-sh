@@ -40,6 +40,12 @@ int sh_ord(char* args) {
     return 0;
 }
 
+int sh_sleep(char* args) {
+    int millis = atoi(args);
+    target_sleep(millis);
+    return 0;
+}
+
 int sh_cat(char* command) {
     Container contents = target_read_file(command);
     if (!contents.content) {

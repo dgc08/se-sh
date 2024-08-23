@@ -36,6 +36,9 @@ Command_func associate_builtin(char* command) {
     else if (strcmp(command, "clear") == 0) {
       return sh_clear;
     }
+    else if (strcmp(command, "sleep") == 0) {
+      return sh_sleep;
+    }
     else if (strcmp(command, "cat") == 0) {
       return sh_cat;
     }
