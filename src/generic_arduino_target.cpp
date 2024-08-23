@@ -75,7 +75,15 @@ void clear_prompt() {
 }
 
 void target_sleep(uint32_t mills) {
-    delay(mills);
+    // You can Ctrl-D to exit in maximum 5 ms
+    ulong now = millis();
+    ulong until = now + mills;
+    while (now < until) {
+        now = millis();
+        if (now % 5 == 0)
+           target_check_exit_condition();
+        delay(1);
+    }
 }
 
 int arduino_prompt(String buf) {
@@ -185,11 +193,15 @@ void target_check_exit_condition() {
     if (Serial.available() && Serial.peek() == 0x4 && running) {
         running = false;
         if (executing) {
-            exit_code = 131;
             generic_arduino_reset();
+            exit_code = 132; // If reset is properly implemented, you don't have to set an exit code
+                             // This is here in case some generic arduino target has no software reset
         }
         exit_code = 130;
 
+        Serial.read();
+    }
+    else if (Serial.available() && executing && (Serial.peek() == '\n' || Serial.peek() == '\r')) {
         Serial.read();
     }
 }

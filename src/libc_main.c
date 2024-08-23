@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <unistd.h>
-#include "stdint.h"
+#include <stdint.h>
 #include <sys/wait.h>
 #include <string.h>
 #include <termios.h>
