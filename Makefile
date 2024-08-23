@@ -29,6 +29,7 @@ RELEASE_LDFLAGS = -s
 
 # The directory for object files
 ESP32_LOCK = $(TMP_DIR)/ESP32.lock
+ESP32_FS_LOCK = $(TMP_DIR)/ESP32_FS.lock
 DEBUG_LOCK = $(TMP_DIR)/debug.lock
 RELEASE_LOCK = $(TMP_DIR)/release.lock
 TMP_DIR = tmp
@@ -42,7 +43,7 @@ ESP_SRCS := $(SHELL_SRCS) $(wildcard src/esp32*.cpp) $(wildcard src/generic_ardu
 # Generate the object file names by replacing .c with .o and prefixing with OBJ_DIR/
 OBJS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRCS))
 
-.PHONY: all debug release lint-libc lint-esp lint-shell test clean clean_obj up con ucon
+.PHONY: all debug release lint-libc lint-esp lint-shell test clean clean_obj up con ucon upfs
 
 debug: CFLAGS = $(COMMON_CFLAGS) $(DEBUG_FLAGS)
 debug: LDFLAGS = $(COMMON_LDFLAGS) $(DEBUG_LDFLAGS)
@@ -79,10 +80,14 @@ $(ESP32_LOCK): $(ESP_SRCS)
 	@mkdir -p $(dir $@)
 	platformio run --target upload
 	touch $@
+$(ESP32_FS_LOCK) : data/
+	@mkdir -p $(dir $@)
+	platformio run --target uploadfs
+	touch $@
 
-up: $(ESP32_LOCK)
-ucon: $(ESP32_LOCK) con
-udev: $(ESP32_LOCK) dev
+up: $(ESP32_LOCK) upfs
+ucon: up con
+upfs: $(ESP32_FS_LOCK)
 
 # Clean up the build
 clean: clean_obj

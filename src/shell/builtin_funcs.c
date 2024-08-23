@@ -54,15 +54,7 @@ int sh_cat(char* command) {
         return 1;
     }
 
-    contents.content = realloc(contents.content, contents.size+1);
-    if (!contents.content) {
-        target_print("cat: Allocation Error");
-        target_newline();
-        return 1;
-    }
-    ((char*)contents.content)[contents.size] = '\0';
-
-    target_print(contents.content);
+    target_write_output(contents.content, contents.size);
     free(contents.content);
     return 0;
 }

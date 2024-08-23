@@ -28,6 +28,10 @@ void target_print(const char* str) {
     Serial.print(str);
 }
 
+void target_write_output(const char* bytes, size_t nbytes) {
+    Serial.write(bytes, nbytes);
+}
+
 void target_print_int(int num) {
     Serial.print(num);
 }
