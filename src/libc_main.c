@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 #include <stdint.h>
 #include <sys/wait.h>
 #include <string.h>
@@ -22,10 +24,10 @@ int history_count = 0;
 int current_history_index = -1;
 struct termios orig_termios;
 
-
 char ch;
 
 extern Terminal target_terminal;
+void read_and_check_exit_condition();
 
 void target_newline() {
     puts("");
@@ -110,7 +112,7 @@ void read_input(char** input) {
 
     set_raw_mode();
     while (1) {
-        target_check_exit_condition();
+        read_and_check_exit_condition();
 
         if (ch == '\n') {
             (*input)[length] = '\0';
@@ -192,8 +194,36 @@ void read_input(char** input) {
     reset_terminal_mode();
 }
 
-void target_check_exit_condition() {
+void read_and_check_exit_condition() {
     if (read(STDIN_FILENO, &ch, 1) == EOF || ch == 4 || ch == EOF) {
+        puts("");
+        target_exit(0);
+    }
+}
+
+void target_check_exit_condition() {
+    char ch;
+
+    // Save the original file descriptor flags
+    int original_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+
+    // Set the file descriptor to non-blocking mode
+    fcntl(STDIN_FILENO, F_SETFL, original_flags | O_NONBLOCK);
+
+    // Try to read from stdin
+    ssize_t n = read(STDIN_FILENO, &ch, 1);
+
+    // If read returned -1 and errno is EAGAIN or EWOULDBLOCK, there's no input
+    if (n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+        // Do nothing and return
+        return;
+    }
+
+    // Restore the original file descriptor flags
+    fcntl(STDIN_FILENO, F_SETFL, original_flags);
+
+    // Check the exit conditions
+    if (n == 0 || ch == 4 || ch == EOF) {
         puts("");
         target_exit(0);
     }

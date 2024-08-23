@@ -51,6 +51,9 @@ Command_func associate_builtin(char* command) {
     else if (strcmp(command, "write") == 0) {
       return sh_write;
     }
+    else if (strcmp(command, "exec") == 0) {
+      return sh_exec;
+    }
 
     return NULL;
 }

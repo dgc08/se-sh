@@ -2,6 +2,7 @@
 
 #include "s_utils.h"
 #include "se-target.h"
+#include "se-sh.h"
 #include <string.h>
 
 Terminal target_terminal;
@@ -47,15 +48,15 @@ int sh_sleep(char* args) {
 }
 
 int sh_cat(char* command) {
-    Container contents = target_read_file(command);
-    if (!contents.content) {
+    Container f = target_read_file(command);
+    if (!f.content) {
         target_print("cat: No such file or directory");
         target_newline();
         return 1;
     }
 
-    target_write_output(contents.content, contents.size);
-    free(contents.content);
+    target_write_output(f.content, f.size);
+    free(f.content);
     return 0;
 }
 
@@ -96,4 +97,64 @@ int sh_write(char* command) {
     target_newline();
     return 0;
     
+}
+
+int sh_exec(char* args) {
+    char* filename = get_arg(&args);
+
+    Container f = target_read_file(filename);
+
+    if (!f.content) {
+        target_print("exec: No such file or directory");
+        target_newline();
+        return 1;
+    }
+
+    char* content = (char*)f.content;
+
+    size_t lines_amount = 0;
+    for (size_t i = 0; i < f.size; i++) {
+        if (content[i] == '\n')
+            lines_amount++;
+    }
+
+    char** lines = malloc(lines_amount * sizeof(void*));
+    size_t j = 0;
+
+    {   // Populate "lines"
+        size_t i = 0;
+        do {
+            lines[j] = content+i;
+            while (content[i] != '\n' && i < f.size) {
+                i++;
+            }
+            if (content[i] == '\n')
+                content[i] = '\0';
+            else
+                content[i-1] = '\0';
+            i++;
+            j++;
+        } while (i < f.size);
+    }
+
+    size_t pc = 0;
+    int code = 0;
+
+    while (pc < lines_amount) {
+        target_check_exit_condition();
+        if (lines[pc] != NULL) {
+            code = prompt(lines[pc]);
+            if (code < 0)
+                goto f_ret;
+        }
+        pc++;
+    }
+
+    f_ret:
+    free(f.content);
+    free(lines);
+    if (code < 0)
+        return (code+1)*-1;
+    else
+        return code;
 }

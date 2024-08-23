@@ -1,7 +1,15 @@
 // Don't forget to define S_UTILS_IMPL somewhere!!
 
+#include "se-target.h"
+
 #ifndef S_UTILS_H_
 #define S_UTILS_H_
+
+#define TODO(msg) do {                              \
+        target_print("[se-sh]: Not implemented / TODO: ");   \
+        target_print(msg);                          \
+        target_newline();                           \
+    } while(0);
 
 #ifdef __cplusplus
 extern "C" {

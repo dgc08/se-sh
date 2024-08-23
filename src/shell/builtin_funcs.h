@@ -5,6 +5,8 @@
 
 extern int se_exit_code;
 
+int sh_exec(char* args);
+
 int sh_exit(char* args);
 int sh_echo(char* args);
 int sh_stty(char* args);

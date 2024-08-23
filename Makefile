@@ -80,7 +80,7 @@ $(ESP32_LOCK): $(ESP_SRCS)
 	@mkdir -p $(dir $@)
 	platformio run --target upload
 	touch $@
-$(ESP32_FS_LOCK) : data/
+$(ESP32_FS_LOCK) : $(wildcard data/*)
 	@mkdir -p $(dir $@)
 	platformio run --target uploadfs
 	touch $@

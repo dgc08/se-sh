@@ -8,7 +8,6 @@
 
 int shell_exit_code = 0;
 
-hw_timer_t *timer = NULL;
 
 void setup() {
     Serial.begin(115200);
@@ -19,16 +18,6 @@ void setup() {
         Serial.println("SPIFFS Mount Failed, hanging up");
         delay(1000);
     }
-
-    timer = timerBegin(0, 80, true); // Timer 0, Prescaler 80 (1 µs per tick), count up
-
-    // Attach the interrupt to the timer
-    timerAttachInterrupt(timer, &target_check_exit_condition, true);
-
-    timerAlarmWrite(timer, 10000, true); // 10000 µs = 10 ms
-
-    // Start the timer
-    timerAlarmEnable(timer);
 
     int code = target_shell();
     Serial.println();
