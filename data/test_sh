@@ -1,8 +1,15 @@
 #!s
-echo Blinker!!!
+echo Blink (Infite loop tho)!!!
+echo (Only for generic Arduino targets)
+
+# No need to reset this because infinte loop
+stty -echo
+
 :blink
-sys digitalWrite 2 1
-sleep 1000
-sys digitalWrite 2 0
-sleep 1000
+    sys digitalWrite 2 1
+    sleep 1000
+
+    sys digitalWrite 2 0
+    sleep 1000
+
 goto blink

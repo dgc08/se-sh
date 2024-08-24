@@ -239,11 +239,13 @@ int generic_arduino_pinMode (char* args) {
 
     generic_arduino_pinMode_API(pin, mode);
 
-    target_print("pinMode for pin ");
-    target_print_int(pin);
-    target_print(" set to ");
-    target_print_int(mode);
-    target_newline();
+    if (target_terminal.echo) {
+        target_print("pinMode for pin ");
+        target_print_int(pin);
+        target_print(" set to ");
+        target_print_int(mode);
+        target_newline();
+    }
 
     return 0;
 }
@@ -258,21 +260,24 @@ int generic_arduino_digitalWrite(char* args) {
         return 1;
     }
     if (pin < NUM_OUPUT_PINS && pinModes[pin] == 0) {
-        target_print("Setting pinMode to OUTPUT...");
         generic_arduino_pinMode_API(pin, OUTPUT);
-        target_print(" Set to ");
-        target_print_int(pinModes[pin]);
+        if (target_terminal.echo) {
+            target_print("Setting pinMode to OUTPUT...");
+            target_print(" Set to ");
+            target_print_int(pinModes[pin]);
+            target_newline();
+        }
+    }
+
+    if (target_terminal.echo) {
+        target_print("digitalWrite for pin ");
+        target_print_int(pin);
+        target_print(" set to ");
+        target_print_int(val);
         target_newline();
     }
 
-    target_print("digitalWrite for pin ");
-    target_print_int(pin);
-    target_print(" set to ");
-    target_print_int(val);
-
     digitalWrite(pin, val);
-
-    target_newline();
 
     return 0;
 }
