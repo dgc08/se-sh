@@ -1,14 +1,16 @@
 // Don't forget to define S_UTILS_IMPL somewhere!!
 
 #include "se-target.h"
+#include <ctype.h>
+#include <stddef.h>
 
 #ifndef S_UTILS_H_
 #define S_UTILS_H_
 
-#define TODO(msg) do {                              \
+#define TODO(msg) do {                                       \
         target_print("[se-sh]: Not implemented / TODO: ");   \
-        target_print(msg);                          \
-        target_newline();                           \
+        target_print(msg);                                   \
+        target_newline();                                    \
     } while(0);
 
 #ifdef __cplusplus
@@ -17,6 +19,7 @@ extern "C" {
 
 int get_argc(char* str);
 char* get_arg(char** string);
+const char* trim_left(const char*);
 
 #ifdef __cplusplus
 }
@@ -39,6 +42,14 @@ char* get_arg(char** str) {
 
     return ret;
 }
+
+const char* trim_left(const char* str) {
+    if (str == NULL) return str;
+    while (*str != '\0' && isspace(*str))
+        str++;
+    return str;
+}
+
 #endif
 
 #endif // S_UTILS_H_

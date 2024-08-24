@@ -3,6 +3,8 @@
 #include "s_utils.h"
 #include "se-target.h"
 #include "se-sh.h"
+#include "executable_formats.h"
+
 #include <string.h>
 
 Terminal target_terminal;
@@ -50,7 +52,8 @@ int sh_sleep(char* args) {
 int sh_cat(char* command) {
     Container f = target_read_file(command);
     if (!f.content) {
-        target_print("cat: No such file or directory");
+        target_print("cat: No such file or directory:");
+        target_print(command);
         target_newline();
         return 1;
     }
@@ -105,56 +108,34 @@ int sh_exec(char* args) {
     Container f = target_read_file(filename);
 
     if (!f.content) {
-        target_print("exec: No such file or directory");
+        target_print("exec: No such file or directory: ");
+        target_print(filename);
         target_newline();
         return 1;
     }
 
     char* content = (char*)f.content;
+    int code = 1;
 
-    size_t lines_amount = 0;
-    for (size_t i = 0; i < f.size; i++) {
-        if (content[i] == '\n')
-            lines_amount++;
+    if (f.size < 5 || content[0] != '#' || content[1] != '!' || content[3] != '\n') { // #!s\n + at least one character
+        goto format_error;
+    }
+    switch (content[2]) { // Magic character identifying the format
+        case SHELL_SCRIPT_CODE:
+            code = exec_shell_script((Container){content+4, f.size-4});
+            break;
+        default:
+            goto format_error;
     }
 
-    char** lines = malloc(lines_amount * sizeof(void*));
-    size_t j = 0;
-
-    {   // Populate "lines"
-        size_t i = 0;
-        do {
-            lines[j] = content+i;
-            while (content[i] != '\n' && i < f.size) {
-                i++;
-            }
-            if (content[i] == '\n')
-                content[i] = '\0';
-            else
-                content[i-1] = '\0';
-            i++;
-            j++;
-        } while (i < f.size);
-    }
-
-    size_t pc = 0;
-    int code = 0;
-
-    while (pc < lines_amount) {
-        target_check_exit_condition();
-        if (lines[pc] != NULL) {
-            code = prompt(lines[pc]);
-            if (code < 0)
-                goto f_ret;
-        }
-        pc++;
-    }
-
+    goto f_ret;
+    
+    format_error:
+    target_print("exec: Exec format error: ");
+    target_print(filename);
+    target_newline();
+    
     f_ret:
     free(f.content);
-    free(lines);
-    if (code < 0)
-        return (code+1)*-1;
-    else
-        return code;
+    return code;
 }

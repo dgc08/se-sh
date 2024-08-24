@@ -58,28 +58,21 @@ Command_func associate_builtin(char* command) {
     return NULL;
 }
 
-Command_func process_builtin(char** buf) {
-    if (*buf[0] == '\0') {
-      return sh_pass;
+int prompt(char* inp) {
+    Command_func func;
+    
+    if (inp == NULL || inp[0] == '\0')
+      func = sh_pass;
+    else {
+      command = get_arg(&inp);
+      func = associate_builtin(command);
     }
 
-    command = get_arg(buf);
-    Command_func func = associate_builtin(command);
-
-    return func;
-}
-
-
-int prompt(char* inp) {
-    Command_func func = process_builtin(&inp);
     if (func) {
       se_exit_code = func(inp);
     }
     else {
-      target_print(command);
-      target_print(": command not found");
-      target_newline();
-      se_exit_code = 1;
+      se_exit_code = sh_exec(command);
     }
 
     if (se_exit_code < 0) {
