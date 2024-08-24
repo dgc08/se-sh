@@ -18,8 +18,9 @@ extern "C" {
 #endif
 
 int get_argc(char* str);
-char* get_arg(char** string);
+char* get_arg(char** str);
 const char* trim_left(const char*);
+bool str_starts_with(const char* str, const char* prefix);
 
 #ifdef __cplusplus
 }
@@ -48,6 +49,14 @@ const char* trim_left(const char* str) {
     while (*str != '\0' && isspace(*str))
         str++;
     return str;
+}
+
+bool str_starts_with(const char *restrict str, const char *restrict prefix) {
+    while(*prefix) {
+        if(*prefix++ != *str++)
+            return false;
+    }
+    return true;
 }
 
 #endif

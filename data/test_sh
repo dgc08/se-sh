@@ -1,5 +1,8 @@
 #!s
-
-echo Hello, (newline hehe)
-echo World!
-exit 69
+echo Blinker!!!
+:blink
+sys digitalWrite 2 1
+sleep 1000
+sys digitalWrite 2 0
+sleep 1000
+goto blink

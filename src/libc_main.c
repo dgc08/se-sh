@@ -204,6 +204,7 @@ void read_and_check_exit_condition() {
     }
 }
 
+// TODO: This doesn't work
 void target_check_exit_condition() {
     char ch;
 
@@ -223,6 +224,9 @@ void target_check_exit_condition() {
             if (ch == 4 || ch == EOF) {
                 puts("");
                 target_exit(132);
+            }
+            else {
+                printf("REad shit: %c", ch);
             }
         }
     } else if (ret < 0) {

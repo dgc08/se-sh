@@ -29,6 +29,10 @@ extern "C" {
     void *realloc(void *, size_t);
     void free(void *);
 
+    char *strcpy (char *__restrict, const char *__restrict);
+    size_t strlen (const char *);
+    int strcmp (const char *, const char *);
+
     // Files
     typedef struct {
         void* content;

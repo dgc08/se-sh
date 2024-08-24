@@ -1,6 +1,7 @@
 #include "executable_formats.h"
 #include "se-sh.h"
 #include "s_utils.h"
+#include "se-target.h"
 
 int exec_shell_script(Container f) {
     char* content = (char*) f.content;
@@ -34,13 +35,40 @@ int exec_shell_script(Container f) {
 
     while (pc < lines_amount) {
         target_check_exit_condition();
-        char* line = (char*) trim_left(lines[pc]);
-        if (line != NULL && line[0] != '#') {
+        char* original = (char*) trim_left(lines[pc]);
+        char* line = (char*) malloc(strlen(original) + 1); // Allocate memory for the string including the null terminator
+        strcpy(line, original);
+        original = line;
+
+
+        if (str_starts_with(line, "goto")) {
+            get_arg(&line);
+            char* label = get_arg(&line);
+            if (*label == '\0'){
+                target_print("Exec shell script 'goto': No label provided");
+                target_newline();
+                goto loop_continue;
+            }
+            label[-1] = ':';
+            label--;
+
+            for (size_t i = 0; i < lines_amount; i++) {
+                if (strcmp(label, trim_left(lines[i])) == 0) {
+                    pc = i;
+                    goto loop_continue;
+                }
+            }
+            target_print("Unknown label: ");
+            target_print(label+1);
+        }
+        else if (line != NULL && line[0] != '#' && line[0] != ':') { // a command or empty line
             code = prompt(line);
             if (code < 0)
                 goto f_ret;
         }
         pc++;
+        loop_continue:
+        free(original);
     }
 
     f_ret:
