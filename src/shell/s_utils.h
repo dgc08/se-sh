@@ -51,7 +51,7 @@ const char* trim_left(const char* str) {
     return str;
 }
 
-bool str_starts_with(const char *restrict str, const char *restrict prefix) {
+bool str_starts_with(const char* str, const char* prefix) {
     while(*prefix) {
         if(*prefix++ != *str++)
             return false;

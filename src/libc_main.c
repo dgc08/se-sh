@@ -66,7 +66,7 @@ int target_system(char* command) {
         int exit_code = WEXITSTATUS(status);
         return exit_code;
   }
-};
+}
 
 void reset_terminal_mode() {
     tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);

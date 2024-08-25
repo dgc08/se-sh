@@ -49,6 +49,15 @@ int sh_sleep(char* args) {
     return 0;
 }
 
+int sh_clear() {
+    target_print("\033[2J\033[H");
+    return 0;
+}
+
+int sh_pass() {
+    return 0;
+}
+
 int sh_cat(char* command) {
     Container f = target_read_file(command);
     if (!f.content) {
