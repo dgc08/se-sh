@@ -35,7 +35,7 @@ int exec_shell_script(Container f) {
 
     while (pc < lines_amount) {
         target_check_exit_condition();
-        char* original = (char*) trim_left(lines[pc]);
+        char* original = (char*) s_trim_left(lines[pc]);
         char* line = (char*) malloc(strlen(original) + 1); // Allocate memory for the string including the null terminator
         strcpy(line, original);
         original = line;
@@ -53,7 +53,7 @@ int exec_shell_script(Container f) {
             label--;
 
             for (size_t i = 0; i < lines_amount; i++) {
-                if (strcmp(label, trim_left(lines[i])) == 0) {
+                if (strcmp(label, s_trim_left(lines[i])) == 0) {
                     pc = i;
                     goto loop_continue;
                 }
@@ -61,7 +61,7 @@ int exec_shell_script(Container f) {
             target_print("Unknown label: ");
             target_print(label+1);
         }
-        else if (line != NULL && line[0] != '#' && line[0] != ':') { // a command or empty line
+        else if (line != NULLPTR && line[0] != '#' && line[0] != ':') { // a command or empty line
             code = prompt(line);
             if (code < 0)
                 goto f_ret;

@@ -1,6 +1,7 @@
 #ifndef SE_TARGET_H_
 #define SE_TARGET_H_
 
+#define TARGET_STDLIB
 #include "s_types.h"
 
 #ifdef __cplusplus
@@ -22,7 +23,7 @@ extern "C" {
     void target_exit(int code); // shutdown
     void target_print_int(int num);
     void target_newline();
-    void target_sleep(uint32_t millis);
+    void target_sleep(unsigned int millis);
 
     // stdlib functions which need to be implemented one way or another
     void *malloc(size_t);

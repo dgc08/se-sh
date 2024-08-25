@@ -1,8 +1,6 @@
 // Don't forget to define S_UTILS_IMPL somewhere!!
 
 #include "se-target.h"
-#include <ctype.h>
-#include <stddef.h>
 
 #ifndef S_UTILS_H_
 #define S_UTILS_H_
@@ -17,9 +15,10 @@
 extern "C" {
 #endif
 
+bool s_isspace(char c);
 int get_argc(char* str);
 char* get_arg(char** str);
-const char* trim_left(const char*);
+const char* s_trim_left(const char*);
 bool str_starts_with(const char* str, const char* prefix);
 
 #ifdef __cplusplus
@@ -28,10 +27,16 @@ bool str_starts_with(const char* str, const char* prefix);
 
 #ifdef S_UTILS_IMPL
 
+bool s_isspace(char c) {
+    return (c == '\t' || c == '\n' ||
+            c == '\v' || c == '\f' || c == '\r' || c == ' ' ? 1 : 0);
+}
+
+
 char* get_arg(char** str) {
     char* ret = *str;
 
-    if (ret != NULL && *ret != '\0') {
+    if (ret != NULLPTR && *ret != '\0') {
         while (*(*str) != ' ' && *(*str) != '\0') {
             (*str)++;
         }
@@ -44,9 +49,9 @@ char* get_arg(char** str) {
     return ret;
 }
 
-const char* trim_left(const char* str) {
-    if (str == NULL) return str;
-    while (*str != '\0' && isspace(*str))
+const char* s_trim_left(const char* str) {
+    if (str == NULLPTR) return str;
+    while (*str != '\0' && s_isspace(*str))
         str++;
     return str;
 }

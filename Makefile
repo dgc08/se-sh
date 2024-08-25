@@ -7,7 +7,7 @@ SRC_DIRS = src/shell
 SERIAL_MONITOR = pio device monitor
 CC = cc
 LINTER =  clang-tidy
-COMMON_CFLAGS = $(INCLUDE_FLAGS) -pedantic-errors -pedantic -Wextra -Wno-ignored-qualifiers
+COMMON_CFLAGS = $(INCLUDE_FLAGS) -pedantic -Wextra -Wno-ignored-qualifiers
 COMMON_LDFLAGS =
 
 DEBUG_FLAGS = -fsanitize=address -g

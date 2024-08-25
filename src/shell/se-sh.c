@@ -8,60 +8,45 @@
 
 typedef int (*Command_func)(char*);
 
-char* command;
+typedef struct {
+    const char *command;
+    Command_func function;
+} Command;
+
 int se_exit_code = 0;
 
-Command_func associate_builtin(char* command) {
-    if (strcmp(command, "echo") == 0) {
-      return sh_echo;
-    }
-    else if (strcmp(command, "exit") == 0) {
-      return sh_exit;
-    }
-    else if (strcmp(command, "pass") == 0) {
-      return sh_pass;
-    }
-    else if (strcmp(command, "sys") == 0) {
-      return target_system;
-    }
-    else if (strcmp(command, "sesh") == 0) {
-      return target_shell;
-    }
-    else if (strcmp(command, "stty") == 0) {
-      return sh_stty;
-    }
-    else if (strcmp(command, "ord") == 0) {
-      return sh_ord;
-    }
-    else if (strcmp(command, "clear") == 0) {
-      return sh_clear;
-    }
-    else if (strcmp(command, "sleep") == 0) {
-      return sh_sleep;
-    }
-    else if (strcmp(command, "cat") == 0) {
-      return sh_cat;
-    }
-    else if (strcmp(command, "rm") == 0) {
-      return sh_rm;
-    }
-    else if (strcmp(command, "ls") == 0) {
-      return sh_ls;
-    }
-    else if (strcmp(command, "write") == 0) {
-      return sh_write;
-    }
-    else if (strcmp(command, "exec") == 0) {
-      return sh_exec;
-    }
+Command commands[] = {
+    {"echo", sh_echo},
+    {"exit", sh_exit},
+    {"pass", sh_pass},
+    {"sys", target_system},
+    {"sesh", target_shell},
+    {"stty", sh_stty},
+    {"ord", sh_ord},
+    {"clear", sh_clear},
+    {"sleep", sh_sleep},
+    {"cat", sh_cat},
+    {"rm", sh_rm},
+    {"ls", sh_ls},
+    {"write", sh_write},
+    {"exec", sh_exec},
+    {NULLPTR, NULLPTR}
+};
 
-    return NULL;
+Command_func associate_builtin(char* command) {
+    for (size_t i = 0; commands[i].command != NULLPTR; i++) {
+        if (strcmp(command, commands[i].command) == 0) {
+            return commands[i].function;
+        }
+    }
+    return NULLPTR;
 }
 
 int prompt(char* inp) {
     Command_func func;
+    char* command;
     
-    if (inp == NULL || inp[0] == '\0')
+    if (inp == NULLPTR || inp[0] == '\0')
       func = sh_pass;
     else {
       command = get_arg(&inp);

@@ -2,7 +2,8 @@
 #define S_TYPES_H_
 
 typedef __SIZE_TYPE__ size_t;
-typedef __UINT32_TYPE__ uint32_t;
+
+#define NULLPTR ((void*) 0)
 
 #ifndef __cplusplus
 

@@ -1,6 +1,4 @@
 #include "sys/unistd.h"
-#define TARGET_LIBC
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
